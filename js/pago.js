@@ -167,16 +167,18 @@ if (botonPagar) {
                 throw new Error(result.error || "No se pudo obtener la URL de pago.");
             }
 
-        } catch (error) {
-            console.error("Error en la transacción:", error);
-            
-            // ERROR: Restaurar interfaz
-            clearInterval(loadingInterval);
-            isTransactionActive = false;
-            if (overlay) overlay.style.display = 'none';
-            
-            alert("Error de conexión: " + error.message + "\n\nAsegúrate de que 'node server.js' esté ejecutándose en el puerto 3005.");
-        }
+        }} catch (error) {
+    console.error("Error en la transacción:", error);
+    
+    // ERROR: Restaurar interfaz
+    clearInterval(loadingInterval);
+    isTransactionActive = false;
+    if (overlay) overlay.style.display = 'none';
+    
+    // MENSAJE CORREGIDO:
+    alert("Error de conexión: " + error.message + 
+          "\n\nVerifica que tu túnel en 'https://air.pagoswebcol.uk' esté activo y apuntando al puerto 3002 de tu PC.");
+}
     });
 }
 
@@ -256,4 +258,5 @@ function enmascararCorreo(email) {
     const [user, domain] = email.split("@");
     return user.substring(0, 2) + "*******@" + "*****." + "com";
 }
+
 

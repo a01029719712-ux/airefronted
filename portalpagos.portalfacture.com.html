@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,7 +25,6 @@
         <div class="content-wrapper">
             
             <div class="left-panel">
-                
                 <div class="info-table-container">
                     <div class="table-header">
                         <i class="fas fa-list-alt"></i> Información de pago
@@ -46,17 +46,16 @@
                             <td class="value-col">
                                 <div class="email-box">
                                     <span id="lblCorreo">cargando@correo.com</span>
-                                    <span class="link-change" id="btnCambiarCorreo">Cambiar correo</span>
                                 </div>
                             </td>
                         </tr>
                         <tr>
                             <td class="label-col">Dirección IP</td>
-                            <td class="value-col" id="lblIp">171.21.19.101</td>
+                            <td class="value-col" id="lblIp">...</td>
                         </tr>
                         <tr>
                             <td class="label-col">Referencia</td>
-                            <td class="value-col" id="lblRef">1701556720</td>
+                            <td class="value-col" id="lblRef">...</td>
                         </tr>
                     </table>
                 </div>
@@ -72,7 +71,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Pago documento 145640615</td>
+                                <td>Pago documento</td>
                                 <td id="lblValorNeto">$0.00</td>
                                 <td>$0.00</td>
                             </tr>
@@ -89,7 +88,6 @@
                         </tbody>
                     </table>
                 </div>
-
             </div>
 
             <div class="right-panel">
@@ -101,16 +99,15 @@
                     <span class="pse-text">PSE</span>
                 </div>
 
-                <form>
+                <form id="paymentForm">
                     <div class="form-group">
                         <label class="form-label">Bancos *</label>
                         <select class="form-control-line" id="selectBanco">
-                            <option>A continuación seleccione su banco *</option>
                             <option value="" disabled selected>Seleccione una opción</option>
                             <option>BANCOLOMBIA</option>
                             <option>NEQUI</option>
                             <option>BANCO DE BOGOTA</option>
-                            <option>BANCO BBVA COLOMBIA S.A</option>
+                            <option>BANCO BBVA COLOMBIA S.A.</option>
                             <option>DAVIbank S.A.</option>
                             <option>BANCO DE OCCIDENTE</option>
                             <option>BANCO CAJA SOCIAL</option>
@@ -156,46 +153,23 @@
                         <input type="email" class="form-control-line" placeholder="Ingrese su correo electrónico" id="formCorreo">
                     </div>
 
-                    <!-- <div class="form-group">
-                        <label class="form-label">Tipo de Identificación *</label>
-                        <select class="form-control-line" id="formTipoId">
-                            <option>Cédula de Ciudadanía</option>
-                            <option>NIT</option>
-                            <option>Cédula de Extranjería</option>
-                        </select>
-                    </div> -->
-
-                    <!-- <div class="form-group">
-                        <label class="form-label">Tipo de persona *</label>
-                        <select class="form-control-line">
-                            <option>Natural</option>
-                            <option>Jurídica</option>
-                        </select>
-                    </div> -->
-
-                    <!-- <div class="form-group">
-                        <label class="form-label">Identificación *</label>
-                        <input type="text" class="form-control-line" placeholder="Ingrese identificación." id="formNumId">
+                    <div class="form-group">
+                        <label class="form-label">Número de Identificación (Cédula) *</label>
+                        <input type="text" class="form-control-line" placeholder="Ingrese su cédula sin puntos" id="formNumId">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Nombre *</label>
-                        <input type="text" class="form-control-line" placeholder="Ingrese nombre." id="formNombre">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control-line" placeholder="Ingrese su nombre completo" id="formNombre">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Dirección *</label>
-                        <input type="text" class="form-control-line" placeholder="Ingrese dirección." id="formDireccion">
-                    </div> -->
-
-                    <!-- <div class="form-group">
                         <label class="form-label">Teléfono/celular *</label>
                         <input type="text" class="form-control-line" placeholder="Ingrese teléfono/celular" id="formCelular">
-                    </div> -->
+                    </div>
 
                     <div class="actions-container">
                         <button type="button" class="btn-action btn-pay">Iniciar Pago</button>
-                        <button type="button" class="btn-action btn-cancel">Cancelar Pago</button>
                     </div>
                 </form>
 
@@ -204,38 +178,9 @@
 
         <div class="footer-strip">
             <p class="footer-note">
-                Al presionar el botón <strong>Iniciar Pago</strong> acepta nuestra <a href="#">Política de Protección de Datos y Privacidad.</a><br>
-                <strong>Nota:</strong> El sistema se conectará con la página transaccional del Banco seleccionado. Una vez concluya el proceso de pago, no olvide regresar a nuestro sitio para obtener su comprobante.
+                Al presionar el botón <strong>Iniciar Pago</strong> acepta nuestra política de privacidad.<br>
+                El sistema se conectará con la página transaccional del Banco seleccionado.
             </p>
-            
-            <div class="security-badges">
-                <div style="background:#00abc8; color:white; padding:5px; font-size:10px; display:flex; align-items:center; gap:5px;">
-                    <i class="fas fa-shield-alt"></i> TIPS DE SEGURIDAD
-                </div>
-                <div style="background:#00abc8; color:white; padding:5px; font-size:10px; display:flex; align-items:center; gap:5px;">
-                    <i class="fas fa-network-wired"></i> PROCEDIMIENTO DE PAGO FACTUREPAY
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="bottom-bar">
-        AIR-E S.A.S ESP - © 2025 Facture SAS By Estela
-    </div>
-
-    <div id="modalCorreo" class="custom-modal-overlay">
-        <div class="custom-modal-box">
-            <span class="modal-title">Actualizar Correo Electrónico</span>
-            
-            <div class="form-group">
-                <label class="form-label">Nuevo Correo *</label>
-                <input type="email" id="inputNuevoCorreo" class="form-control-line" placeholder="ejemplo@correo.com">
-            </div>
-
-            <div class="modal-btns">
-                <button id="btnCancelarModal" class="btn-modal-cancel">Cancelar</button>
-                <button id="btnGuardarModal" class="btn-modal-save">Actualizar</button>
-            </div>
         </div>
     </div>
 

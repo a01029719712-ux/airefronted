@@ -49,35 +49,70 @@ if(btnPagar) {
 
         try {
             const nic = inputNic.value.trim();
-            // USAMOS LA URL QUE CONFIRMASTE QUE FUNCIONA (JSON)
+            // URL original de la API
             const targetUrl = `https://caribesol.facture.co/DesktopModules/Gateway.Pago.ConsultaAnonima/API/ConsultaAnonima/getPolizaOpen?cd_poliza=${nic}`;
             
-            // PROXY ALLORIGINS (Mejor para hostings)
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            // Usamos corsproxy.io (Codificado correctamente)
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
             const resp = await fetch(proxyUrl);
-            if (!resp.ok) throw new Error("Error en conexión con el proxy.");
+            if (!resp.ok) throw new Error("Error de conexión (Estado: " + resp.status + ")");
 
-            const jsonWrapper = await resp.json();
-            const data = JSON.parse(jsonWrapper.contents); // AllOrigins devuelve los datos en 'contents'
+            // 1. Obtenemos la respuesta
+            let data = await resp.json();
+            
+            // --- CORRECCIÓN CLAVE ---
+            // A veces la API devuelve un JSON dentro de un String. Si 'data' es texto, lo convertimos a objeto.
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (e) {
+                    console.error("No se pudo parsear el string interno", e);
+                }
+            }
 
-            if (!data.ACCOUNTS) throw new Error("No se encontraron datos para este NIC.");
+            console.log("Datos recibidos de la API:", data); // Mira la consola (F12) para ver qué llegó
 
-            const info = data.ACCOUNTS;
+            // 2. Buscamos la información (info) de forma flexible
+            let info = null;
+
+            if (data.ACCOUNTS) {
+                // Caso A: Viene dentro de ACCOUNTS (Lo normal)
+                info = data.ACCOUNTS;
+            } else if (data.ADJUST_BALANCE) {
+                // Caso B: Viene directo en la raíz (Sin ACCOUNTS)
+                info = data;
+            } else if (Array.isArray(data) && data.length > 0 && data[0].ADJUST_BALANCE) {
+                 // Caso C: Viene dentro de un array
+                 info = data[0];
+            }
+
+            // 3. Verificamos si encontramos la info
+            if (!info) {
+                // Si falla, mostramos qué llegó para entender el error
+                alert("Respuesta recibida pero sin datos de cuenta. Ver consola para detalles.");
+                console.log("Estructura desconocida:", data);
+                throw new Error("No se encontraron datos para este NIC.");
+            }
+
+            // --- DE AQUÍ EN ADELANTE ES TU CÓDIGO NORMAL ---
             const deudaTotalNum = parseFloat(info.ADJUST_BALANCE) || 0;
             
-            // Obtener valor del último mes
             let valorMesNum = 0;
             if (info.INVOICES && info.INVOICES.length > 0) {
                 valorMesNum = parseFloat(info.INVOICES[info.INVOICES.length - 1].ADJUST_BALANCE) || 0;
             }
+            
+            // IMPORTANTE: Asegúrate de usar 'data.NAME' o 'info.NAME' según corresponda
+            // Si 'data.NAME' no existe, intentamos buscarlo dentro de 'info'
+            const nombreUsuario = data.NAME || info.NAME || "Usuario Air-e";
 
             if (deudaTotalNum > 0) {
                 whitePanel.innerHTML = `
                 <div class="invoice-view">
                     <div class="invoice-header"><h3>PAGUE SU FACTURA</h3></div>
                     <div style="text-align:center; padding:10px; background:#f0f4f8; margin-bottom:15px; border-radius:5px;">
-                        <strong style="display:block; color:#004a99;">${data.NAME}</strong>
+                        <strong style="display:block; color:#004a99;">${nombreUsuario}</strong>
                         <small>${info.COLLECTION_ADDRESS}</small>
                     </div>
                     <div class="invoice-form-grid">

